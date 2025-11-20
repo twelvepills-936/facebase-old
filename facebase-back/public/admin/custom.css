@@ -1,0 +1,51 @@
+/* Убираем синий блок слева */
+section[data-css="login-card"] {
+  background: none !important;
+}
+
+/* Кастомизация формы логина */
+form[data-css="login-form"] {
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+  padding: 2rem;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Кастомизация фона страницы логина */
+div[data-css="login-container"] {
+  background: #f5f5f5;
+}
+
+/* Кастомизация кнопки логина */
+button[data-css="login-button"] {
+  width: 100%;
+  margin-top: 1rem;
+  background: #4f46e5;
+  transition: background-color 0.2s;
+}
+
+button[data-css="login-button"]:hover {
+  background: #4338ca;
+}
+
+/* Скрываем dashboard */
+.dashboard,
+[data-css="dashboard"],
+[data-css="sidebar-dashboard"],
+[data-css="dashboard-wrapper"],
+[data-css="dashboard-content"] {
+  display: none !important;
+  visibility: hidden !important;
+  height: 0 !important;
+  width: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  overflow: hidden !important;
+}
+
+.hZzKCo {
+  display: none !important;
+}
