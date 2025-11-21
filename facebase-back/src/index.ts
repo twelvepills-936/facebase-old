@@ -1,4 +1,5 @@
 import express, { Application } from "express";
+import http from "http";
 import dotenv from "dotenv";
 import cors from "cors";
 import helmet from "helmet";
@@ -9,6 +10,7 @@ import { connectDB } from "@config/db.js";
 import { admin, authenticate } from "./admin/admin.config.js";
 import AdminJSExpress from "@adminjs/express";
 import swaggerSpec from "./config/swagger.js";
+import { initializeSocketIO } from "./services/socketService.js";
 
 import profileRoutes from "@routes/profileRoutes.js";
 import projectRoutes from "@routes/projectRoutes.js";
@@ -19,6 +21,7 @@ import walletRoutes from "@routes/walletRoutes.js";
 import uploadRoutes from "@routes/uploadRoutes.js";
 import brandRoutes from "@routes/brandRoutes.js";
 import taskRoutes from "@routes/taskRoutes.js";
+import adminRoutes from "@routes/adminRoutes.js";
 import rateLimit from "express-rate-limit";
 import { authMiddleware } from "./middlewares/authMiddleware.js";
 
@@ -108,10 +111,20 @@ const adminRouter = AdminJSExpress.buildAuthenticatedRouter(admin, {
 app.use(admin.options.rootPath, adminRouter);
 
 // Swagger documentation
+// JSON spec endpoint
+app.get("/api-docs.json", (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.send(swaggerSpec);
+});
+
+// Swagger UI
 // @ts-ignore
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
   customCss: ".swagger-ui .topbar { display: none }",
   customSiteTitle: "Facebase API Documentation",
+  swaggerOptions: {
+    url: '/api-docs.json'
+  }
 }));
 
 // Health check endpoints (no auth required)
@@ -167,13 +180,21 @@ app.use("/api/wallet", walletRoutes);
 app.use("/api/upload", uploadRoutes);
 app.use("/api/brands", brandRoutes);
 app.use("/api/tasks", taskRoutes);
+app.use("/api/admin", adminRoutes); // Admin-only routes
 
 const PORT = process.env.PORT || 5001;
 
-app.listen(PORT, () => {
+// Создаем HTTP сервер
+const httpServer = http.createServer(app);
+
+// Инициализируем Socket.IO для real-time обновлений
+initializeSocketIO(httpServer);
+
+httpServer.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
   console.log(`AdminJS is running on http://localhost:${PORT}/admin`);
   console.log(`API Documentation is running on http://localhost:${PORT}/api-docs`);
+  console.log(`🔌 WebSocket is running on ws://localhost:${PORT}`);
   
   // Запускаем Telegram бота
   initTelegramBot();

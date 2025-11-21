@@ -6,6 +6,13 @@ import {
 } from "../models/walletModel.js";
 
 const monitorWalletChanges = () => {
+  // Change Streams требуют MongoDB Replica Set
+  // В dev режиме отключаем для избежания ошибок
+  if (process.env.NODE_ENV !== "production") {
+    console.log("⚠️ Wallet Change Stream disabled in development mode");
+    return;
+  }
+
   const transactionCollection = mongoose.connection.collection("wallets");
 
   let changeStream: mongoose.mongo.ChangeStream | null = null;

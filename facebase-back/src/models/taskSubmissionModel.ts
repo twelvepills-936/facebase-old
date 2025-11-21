@@ -2,10 +2,11 @@ import mongoose from "mongoose";
 
 export interface IStepData {
   step_number: number;
-  status: "pending" | "completed" | "rejected";
+  status: "pending" | "in_review" | "approved" | "rejected";
   data: any;
   submitted_at?: Date;
   reviewed_at?: Date;
+  reviewed_by?: string; // Admin username/id who reviewed
   rejection_reason?: string;
 }
 
@@ -25,12 +26,13 @@ const stepDataSchema = new mongoose.Schema<IStepData>({
   step_number: { type: Number, required: true },
   status: {
     type: String,
-    enum: ["pending", "completed", "rejected"],
+    enum: ["pending", "in_review", "approved", "rejected"],
     default: "pending",
   },
   data: { type: mongoose.Schema.Types.Mixed },
   submitted_at: { type: Date },
   reviewed_at: { type: Date },
+  reviewed_by: { type: String },
   rejection_reason: { type: String },
 });
 

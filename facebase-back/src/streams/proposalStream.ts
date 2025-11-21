@@ -9,6 +9,13 @@ import { telegramWebAppLink } from "../constants/index.js";
 const REFERRAL_PERCENT = 7;
 
 const monitorProposalChanges = () => {
+  // Change Streams требуют MongoDB Replica Set
+  // В dev режиме отключаем для избежания ошибок
+  if (process.env.NODE_ENV !== "production") {
+    console.log("⚠️ Proposal Change Stream disabled in development mode");
+    return;
+  }
+
   const proposalCollection = mongoose.connection.collection("proposals");
 
   let changeStream: mongoose.mongo.ChangeStream | null = null;

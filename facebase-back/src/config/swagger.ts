@@ -1,4 +1,9 @@
 import swaggerJsdoc from "swagger-jsdoc";
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const options: swaggerJsdoc.Options = {
   definition: {
@@ -819,10 +824,27 @@ const options: swaggerJsdoc.Options = {
       },
     ],
   },
-  apis: ["./src/routes/*.ts", "./dist/routes/*.js"],
+  apis: [
+    join(__dirname, "../routes/*.ts"),
+    join(__dirname, "../routes/**/*.ts"),
+    join(__dirname, "../../dist/routes/*.js"),
+    join(__dirname, "../../dist/routes/**/*.js"),
+  ],
 };
 
+console.log('📝 Swagger scanning paths:');
+console.log('  -', join(__dirname, "../routes/*.ts"));
+console.log('  -', join(__dirname, "../routes/**/*.ts"));
+
 const swaggerSpec = swaggerJsdoc(options);
+
+// Проверяем сколько путей найдено
+const pathsCount = Object.keys(swaggerSpec.paths || {}).length;
+console.log(`✅ Swagger loaded ${pathsCount} endpoints`);
+
+if (pathsCount === 0) {
+  console.warn('⚠️ WARNING: No Swagger endpoints found! Check your @swagger comments and file paths.');
+}
 
 export default swaggerSpec;
 

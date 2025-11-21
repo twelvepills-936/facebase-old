@@ -7,6 +7,12 @@ const token = process.env.TELEGRAM_BOT_TOKEN as string;
 let bot: TelegramBot | null = null;
 
 const initTelegramBot = () => {
+  // В dev режиме отключаем Telegram bot если токен не настроен
+  if (process.env.NODE_ENV !== "production" && !token) {
+    console.log("⚠️ Telegram bot disabled in development mode (no token configured)");
+    return;
+  }
+
   if (!token) {
     console.warn("TELEGRAM_BOT_TOKEN is not defined - bot will not start");
     return;
@@ -18,7 +24,15 @@ const initTelegramBot = () => {
   }
 
   try {
-    bot = new TelegramBot(token, { polling: true });
+    bot = new TelegramBot(token, { 
+      polling: {
+        interval: 1000,
+        autoStart: true,
+        params: {
+          timeout: 10
+        }
+      }
+    });
 
   bot.onText(/\/start/, (msg) => {
     const chatId = msg.chat.id;
@@ -32,10 +46,18 @@ const initTelegramBot = () => {
     );
   });
 
-  // test
-    bot.on("polling_error", (error) => {
+  // Обработка ошибок polling с ограничением спама
+  let lastErrorTime = 0;
+  const ERROR_THROTTLE_MS = 60000; // Показывать ошибку не чаще раза в минуту
+  
+  bot.on("polling_error", (error) => {
+    const now = Date.now();
+    if (now - lastErrorTime > ERROR_THROTTLE_MS) {
       console.error("Telegram polling error:", error.message);
-    });
+      console.log("(Further polling errors will be throttled for 1 minute)");
+      lastErrorTime = now;
+    }
+  });
 
     console.log("Telegram bot started successfully");
   } catch (error) {

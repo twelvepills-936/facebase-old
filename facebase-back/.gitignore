@@ -1,0 +1,49 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Environment variables
+.env
+.env.local
+.env.production
+
+# Build output
+dist/
+build/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test scripts
+get-objectids.js
+generate-objectid.js
+get-real-ids.js
+test-submission-diagnostic.js
+create-test-data.js
+seed-database.js
+seed-via-docker.sh
+verify-fix.js
+verify-steps-fix.js
+test-steps-endpoint.js
+check-swagger-spec.js
+test-userid-priority-fix.js
+test-user-list.js
+test-auto-submission.js
+test-websocket.js
+test-step-moderation.js
+test-realtime-updates.js
+

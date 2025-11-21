@@ -32,3 +32,11 @@ logs/
 *.tmp
 .cache/
 
+# Test scripts
+test-*.js
+check-*.js
+get-tasks.js
+get-real-ids.js
+get-objectids.js
+generate-objectid.js
+
