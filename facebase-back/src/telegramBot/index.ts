@@ -50,14 +50,14 @@ const initTelegramBot = () => {
   let lastErrorTime = 0;
   const ERROR_THROTTLE_MS = 60000; // Показывать ошибку не чаще раза в минуту
   
-  bot.on("polling_error", (error) => {
+    bot.on("polling_error", (error) => {
     const now = Date.now();
     if (now - lastErrorTime > ERROR_THROTTLE_MS) {
       console.error("Telegram polling error:", error.message);
       console.log("(Further polling errors will be throttled for 1 minute)");
       lastErrorTime = now;
     }
-  });
+    });
 
     console.log("Telegram bot started successfully");
   } catch (error) {

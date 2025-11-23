@@ -91,9 +91,25 @@ export const getUserTasksList = async (req: Request, res: Response) => {
       filters.status = status;
     }
 
-    const tasks = await getUserTasks(userId, filters);
+    const submissions = await getUserTasks(userId, filters);
 
-    res.status(200).json(tasks);
+    // Преобразуем в формат {task, submission} для консистентности с GET /api/tasks/{taskId}
+    const tasksWithSubmissions = submissions.map(submission => ({
+      task: submission.task,
+      submission: {
+        _id: submission._id,
+        profile: submission.profile,
+        status: submission.status,
+        steps_data: submission.steps_data,
+        activeStep: submission.activeStep,
+        started_at: submission.started_at,
+        completed_at: submission.completed_at,
+        createdAt: submission.createdAt,
+        updatedAt: submission.updatedAt,
+      }
+    }));
+
+    res.status(200).json(tasksWithSubmissions);
   } catch (error) {
     console.error("Error fetching user tasks:", error);
     res.status(500).json({ 
