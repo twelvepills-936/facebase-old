@@ -7,9 +7,9 @@ import {
 
 const monitorWalletChanges = () => {
   // Change Streams требуют MongoDB Replica Set
-  // В dev режиме отключаем для избежания ошибок
-  if (process.env.NODE_ENV !== "production") {
-    console.log("⚠️ Wallet Change Stream disabled in development mode");
+  // Отключаем если не установлена переменная окружения ENABLE_CHANGE_STREAMS
+  if (process.env.ENABLE_CHANGE_STREAMS !== "true") {
+    console.log("⚠️ Wallet Change Stream disabled (ENABLE_CHANGE_STREAMS not set to 'true')");
     return;
   }
 

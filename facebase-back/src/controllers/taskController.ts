@@ -140,7 +140,7 @@ export const submitStep = async (req: Request, res: Response) => {
       submissionId: submission._id,
       status: submission.status,
       activeStep: submission.activeStep,
-      completedSteps: submission.steps_data.filter(s => s.status === 'completed').length,
+      approvedSteps: submission.steps_data.filter(s => s.status === 'approved').length,
       totalSteps: submission.steps_data.length
     });
 

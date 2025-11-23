@@ -836,7 +836,7 @@ console.log('📝 Swagger scanning paths:');
 console.log('  -', join(__dirname, "../routes/*.ts"));
 console.log('  -', join(__dirname, "../routes/**/*.ts"));
 
-const swaggerSpec = swaggerJsdoc(options);
+const swaggerSpec = swaggerJsdoc(options) as { paths?: Record<string, any> };
 
 // Проверяем сколько путей найдено
 const pathsCount = Object.keys(swaggerSpec.paths || {}).length;
