@@ -44,6 +44,25 @@ export const getTask = async (req: Request, res: Response) => {
       if (!submission) {
         console.log(`📝 Submission not found, auto-creating for user ${userId}...`);
         submission = await startTask(taskId, userId);
+        
+        // КРИТИЧЕСКАЯ ПРОВЕРКА: submission должен быть создан!
+        if (!submission) {
+          console.error(`❌ CRITICAL: Failed to create submission for user ${userId}`);
+          console.error(`   - taskId: ${taskId}`);
+          console.error(`   - userId (telegram_id): ${userId}`);
+          console.error(`   - Possible reasons: Task not found, Database error, Invalid data`);
+          
+          return res.status(500).json({ 
+            error: "Failed to create submission",
+            details: "Could not create or retrieve submission for this task. Please try again.",
+            debug: {
+              taskId,
+              userId,
+              hint: "No submission exists for this userId and this task. Auto-creation failed."
+            }
+          });
+        }
+        
         console.log(`✅ Submission auto-created: ${submission._id}`);
       }
       
@@ -55,6 +74,26 @@ export const getTask = async (req: Request, res: Response) => {
       });
     } else {
       console.log(`⚠️ No userId provided, cannot fetch/create submission`);
+      console.log(`ℹ️  To get submission, add ?userId=TELEGRAM_ID to request`);
+    }
+
+    // ФИНАЛЬНАЯ ПРОВЕРКА ПЕРЕД ОТПРАВКОЙ ОТВЕТА
+    if (userId && submission === null) {
+      console.error(`🚨 CRITICAL: GET request is about to return submission = null despite userId provided!`);
+      console.error(`   - taskId: ${taskId}`);
+      console.error(`   - userId: ${userId}`);
+      console.error(`   - This should NOT happen after auto-creation logic!`);
+      console.error(`   - Converting this to HTTP 500 to make the problem explicit for the client.`);
+
+      return res.status(500).json({
+        error: "Submission is null",
+        details: "Submission for this task and userId should exist, but was not found.",
+        debug: {
+          taskId,
+          userId,
+          hint: "Check that the same userId is used for POST /steps and GET /tasks, and inspect server logs for auto-creation errors."
+        }
+      });
     }
 
     res.status(200).json({
@@ -109,6 +148,14 @@ export const getUserTasksList = async (req: Request, res: Response) => {
       }
     }));
 
+    // ПРОВЕРКА: если какой-то submission = null (не должно быть!)
+    const nullSubmissions = tasksWithSubmissions.filter(item => !item.submission);
+    if (nullSubmissions.length > 0) {
+      console.error(`🚨 WARNING: Found ${nullSubmissions.length} tasks with null submission in user list!`);
+      console.error(`   - userId: ${userId}`);
+      console.error(`   - This should NOT happen!`);
+    }
+
     res.status(200).json(tasksWithSubmissions);
   } catch (error) {
     console.error("Error fetching user tasks:", error);
@@ -159,6 +206,16 @@ export const submitStep = async (req: Request, res: Response) => {
       approvedSteps: submission.steps_data.filter(s => s.status === 'approved').length,
       totalSteps: submission.steps_data.length
     });
+
+    // ФИНАЛЬНАЯ ПРОВЕРКА ПЕРЕД ОТПРАВКОЙ ОТВЕТА
+    if (!submission) {
+      console.error(`🚨 CRITICAL: POST request returning null submission despite userId provided!`);
+      console.error(`   - taskId: ${taskId}`);
+      console.error(`   - stepNumber: ${stepNumber}`);
+      console.error(`   - userId: ${userId}`);
+      console.error(`   - This should NEVER happen!`);
+      throw new Error("Submission is null after submitStepData");
+    }
 
     res.status(200).json(submission);
   } catch (error) {

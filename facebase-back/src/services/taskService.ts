@@ -94,16 +94,23 @@ export const getTaskSubmission = async (
     console.log(`✅ Submission found: ${submission._id} (task: ${submission.task}, profile: ${submission.profile})`);
   } else {
     console.log(`⚠️ Submission NOT found for task=${taskId}, profile=${profile._id}`);
+    console.log(`📍 DEBUG INFO:`);
+    console.log(`   - userId (telegram_id): ${userId}`);
+    console.log(`   - Profile MongoDB ID: ${profile._id}`);
+    console.log(`   - Task ID: ${taskId}`);
     
     // Проверим сколько всего submission'ов у этого пользователя
     const allUserSubmissions = await TaskSubmission.find({ profile: profile._id });
-    console.log(`📊 Total submissions for this profile: ${allUserSubmissions.length}`);
+    console.log(`📊 Total submissions for userId=${userId}: ${allUserSubmissions.length}`);
     if (allUserSubmissions.length > 0) {
-      console.log(`📋 User's submissions:`, allUserSubmissions.map(s => ({ 
-        id: s._id, 
-        task: s.task,
+      console.log(`📋 User's existing submissions:`, allUserSubmissions.map(s => ({ 
+        submissionId: s._id, 
+        taskId: s.task,
         status: s.status 
       })));
+      console.log(`ℹ️  User has submissions, but NOT for task ${taskId}`);
+    } else {
+      console.log(`ℹ️  User has NO submissions yet (first task)`);
     }
   }
 
@@ -229,6 +236,18 @@ export const submitStepData = async (
   if (!submission) {
     console.log(`📝 Submission not found, auto-creating for task=${taskId}, profile=${profile._id}...`);
     submission = await startTask(taskId, userId);
+    
+    // КРИТИЧЕСКАЯ ПРОВЕРКА: submission должен быть создан!
+    if (!submission) {
+      console.error(`❌ CRITICAL: Failed to create submission`);
+      console.error(`   - taskId: ${taskId}`);
+      console.error(`   - userId (telegram_id): ${userId}`);
+      console.error(`   - Profile MongoDB ID: ${profile._id}`);
+      console.error(`   - Reason: Auto-creation failed`);
+      
+      throw new Error(`Failed to create submission for userId=${userId}. No submission exists for this user and this task.`);
+    }
+    
     console.log(`✅ Submission auto-created: ${submission._id}, status=${submission.status}`);
   } else {
     console.log(`✅ Submission found: ${submission._id}, status=${submission.status}`);
