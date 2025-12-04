@@ -13,6 +13,8 @@ export interface ITransaction {
   status: TransactionStatus;
   description?: string;
   details?: string;
+  rocketWorkPayoutId?: string;
+  rocketWorkRecipientId?: string;
 }
 
 interface IWithdrawMethod {
@@ -44,6 +46,8 @@ const TransactionSchema = new Schema<ITransaction>({
   },
   description: { type: String },
   details: { type: String },
+  rocketWorkPayoutId: { type: String },
+  rocketWorkRecipientId: { type: String },
 });
 
 const WithdrawMethodSchema = new Schema<IWithdrawMethod>({

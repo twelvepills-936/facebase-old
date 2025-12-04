@@ -22,6 +22,10 @@ import uploadRoutes from "@routes/uploadRoutes.js";
 import brandRoutes from "@routes/brandRoutes.js";
 import taskRoutes from "@routes/taskRoutes.js";
 import adminRoutes from "@routes/adminRoutes.js";
+import ratingRoutes from "@routes/ratingRoutes.js";
+import rocketWorkRoutes from "@routes/rocketWorkRoutes.js";
+import tildaRoutes from "@routes/tildaRoutes.js";
+import { getTopRatings } from "./controllers/ratingController.js";
 import rateLimit from "express-rate-limit";
 import { authMiddleware } from "./middlewares/authMiddleware.js";
 
@@ -30,7 +34,8 @@ dotenv.config();
 const app: Application = express();
 
 // Определяем режим работы
-const isDevMode = process.env.NODE_ENV !== "production";
+// Dev mode активен если NODE_ENV !== production ИЛИ если включены тестовые токены
+const isDevMode = process.env.NODE_ENV !== "production" || process.env.ALLOW_TEST_TOKENS === "true";
 
 // Скрываем информацию о Express из заголовков (безопасность)
 app.disable("x-powered-by");
@@ -45,7 +50,7 @@ const limiter = rateLimit({
 
 connectDB();
 
-app.use(express.json());
+// Static files - можно оставить до AdminJS
 app.use(express.static("public"));
 
 const corsOrigins = [
@@ -109,6 +114,10 @@ const adminRouter = AdminJSExpress.buildAuthenticatedRouter(admin, {
   cookieName: "adminjs",
 });
 app.use(admin.options.rootPath, adminRouter);
+
+// Body parser должен быть ПОСЛЕ AdminJS роутера
+app.use(express.json());
+app.use(express.urlencoded({ extended: true })); // Для обработки форм от Тильды
 
 // Swagger documentation
 // JSON spec endpoint
@@ -191,6 +200,11 @@ app.use("/api/wallet", walletRoutes);
 app.use("/api/upload", uploadRoutes);
 app.use("/api/brands", brandRoutes);
 app.use("/api/tasks", taskRoutes);
+app.use("/api/rating", ratingRoutes);
+app.use("/api/rocketwork", rocketWorkRoutes);
+app.use("/api/tilda", tildaRoutes);
+// Leaderboard endpoint (alias for /api/rating/top)
+app.get("/api/leaderboard", getTopRatings);
 app.use("/api/admin", adminRoutes); // Admin-only routes
 
 const PORT = process.env.PORT || 5001;

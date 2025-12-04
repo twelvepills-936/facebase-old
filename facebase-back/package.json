@@ -7,7 +7,8 @@
   "author": "Maks Zhers <maks.zhers@gmail.com>",
   "license": "MIT",
   "scripts": {
-    "build": "tsc && tsc-alias && cp -r src/admin/components dist/admin/",
+    "build": "tsc && tsc-alias",
+    "build:win": "tsc && tsc-alias && xcopy /E /I /Y src\\admin\\components dist\\admin\\components",
     "start": "node dist/index.js",
     "dev": "tsx watch src/index.ts",
     "create-admin": "tsx src/scripts/createAdmin.ts"
@@ -18,6 +19,7 @@
     "@adminjs/mongoose": "^4.1.0",
     "@aws-sdk/client-s3": "^3.808.0",
     "@types/multer": "^1.4.12",
+    "axios": "^1.7.9",
     "@types/node-telegram-bot-api": "^0.64.7",
     "@types/react": "^18.0.1",
     "@types/react-dom": "^18.0.1",
@@ -66,6 +68,7 @@
     "@types/swagger-jsdoc": "^6.0.4",
     "@types/swagger-ui-express": "^4.1.6",
     "tsc-alias": "^1.8.10",
+    "tsconfig-paths": "^4.2.0",
     "tsx": "^4.19.1",
     "typescript": "^5.0.0"
   }

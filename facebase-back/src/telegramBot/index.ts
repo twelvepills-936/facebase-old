@@ -1,5 +1,6 @@
 import dotenv from "dotenv";
 import TelegramBot from "node-telegram-bot-api";
+import * as ratingService from "../services/ratingService.js";
 
 dotenv.config();
 const token = process.env.TELEGRAM_BOT_TOKEN as string;
@@ -44,6 +45,90 @@ const initTelegramBot = () => {
       – Приглашайте блогеров для заработка по реферальной программе
       – Развивайте канал и будьте в курсе последних новостей в мире блогинга`
     );
+  });
+
+  bot.onText(/\/rating/, async (msg) => {
+    const chatId = msg.chat.id;
+    const telegramId = msg.from?.id?.toString();
+
+    if (!telegramId) {
+      bot!.sendMessage(chatId, "❌ Не удалось определить ваш ID пользователя");
+      return;
+    }
+
+    try {
+      const rating = await ratingService.getUserRating(telegramId);
+      
+      if (!rating) {
+        bot!.sendMessage(
+          chatId,
+          "❌ Профиль не найден. Пожалуйста, зарегистрируйтесь в приложении."
+        );
+        return;
+      }
+
+      const rankInfo = await ratingService.getUserRank(telegramId);
+      const rankText = rankInfo 
+        ? `🏆 Ваше место в рейтинге: ${rankInfo.rank} из ${rankInfo.totalUsers}`
+        : "🏆 Ваше место в рейтинге: рассчитывается...";
+
+      const message = `📊 Ваш рейтинг в Facebase
+
+⭐ Рейтинг: ${rating.rating} баллов
+${rankText}
+
+📈 Статистика:
+✅ Выполнено заданий: ${rating.completedTasks}
+✅ Одобрено предложений: ${rating.approvedProposals}
+💰 Общий заработок: ${rating.totalEarned.toFixed(2)} ₽
+👥 Рефералов: ${rating.referralsCount}
+
+💡 Как повысить рейтинг:
+• Выполняйте задания (+10 баллов за задание)
+• Получайте одобрение предложений (+5 баллов за предложение)
+• Приглашайте друзей (+2 балла за реферала)
+• Зарабатывайте больше (+1 балл за каждые 100 ₽)`;
+
+      bot!.sendMessage(chatId, message);
+    } catch (error) {
+      console.error("Error getting rating:", error);
+      bot!.sendMessage(
+        chatId,
+        "❌ Произошла ошибка при получении рейтинга. Попробуйте позже."
+      );
+    }
+  });
+
+  bot.onText(/\/top/, async (msg) => {
+    const chatId = msg.chat.id;
+
+    try {
+      const topRatings = await ratingService.getTopRatings(10);
+      
+      if (topRatings.length === 0) {
+        bot!.sendMessage(chatId, "📊 Рейтинг пока пуст. Будьте первым!");
+        return;
+      }
+
+      let message = "🏆 Топ-10 пользователей Facebase\n\n";
+      
+      topRatings.forEach((user, index) => {
+        const medal = index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : "▫️";
+        const name = user.profile.username 
+          ? `@${user.profile.username}` 
+          : user.profile.name;
+        message += `${medal} ${index + 1}. ${name}\n`;
+        message += `   ⭐ ${user.rating} баллов | ✅ ${user.completedTasks} заданий | 💰 ${user.totalEarned.toFixed(2)} ₽\n\n`;
+      });
+
+      bot!.sendMessage(chatId, message);
+    } catch (error) {
+      console.error("Error getting top ratings:", error);
+      bot!.sendMessage(
+        chatId,
+        "❌ Произошла ошибка при получении рейтинга. Попробуйте позже."
+      );
+    }
   });
 
   // Обработка ошибок polling с ограничением спама

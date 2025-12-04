@@ -39,11 +39,45 @@ export const authMiddleware = (
 
   const initDataRaw = authHeader.split(" ")[1];
 
+  // 1. Check for ADMIN token
   if (initDataRaw === process.env.ADMIN_TOKEN) {
     console.log("✅ ADMIN AUTH TOKEN");
     return next();
   }
 
+  // 2. DEV MODE: Check for test tokens (dev-*, test-*)
+  const allowTestTokens = process.env.ALLOW_TEST_TOKENS === "true" || process.env.NODE_ENV !== "production";
+  const isTestToken = initDataRaw.startsWith("dev-") || initDataRaw.startsWith("test-");
+  
+  if (allowTestTokens && isTestToken) {
+    console.log(`🔧 DEV MODE: Test token detected - ${initDataRaw}`);
+    
+    try {
+      // Extract mock user data from test token
+      // Format: "test-{userId}" or "dev-{userId}"
+      const userId = initDataRaw.split("-")[1] || "123456789";
+      
+      // Create mock user object
+      (req as any).user = {
+        id: userId,
+        first_name: "Test User",
+        last_name: "Dev",
+        username: `test_user_${userId}`,
+        language_code: "en",
+      };
+      
+      console.log(`✅ DEV MODE: Auth bypassed for test user ${userId}`);
+      return next();
+    } catch (error) {
+      console.error("❌ DEV MODE: Failed to parse test token:", error);
+      return res.status(403).json({ 
+        error: "Invalid test token format",
+        hint: "Use format: 'test-{userId}' or 'dev-{userId}'"
+      });
+    }
+  }
+
+  // 3. PRODUCTION MODE or real Telegram token: Verify signature
   try {
     const data = Object.fromEntries(new URLSearchParams(atob(initDataRaw)));
 

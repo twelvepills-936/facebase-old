@@ -16,6 +16,7 @@
       "@config/*": ["src/config/*"],
       "@routes/*": ["src/routes/*"]
     },
+    "types": ["node"],
     "typeRoots": ["./src/types", "./node_modules/@types"],
     "noEmit": false,
     "forceConsistentCasingInFileNames": true,

@@ -12,6 +12,10 @@ COPY . .
 # Build the application
 RUN yarn build
 
+# Copy admin components (they are not compiled by TypeScript)
+RUN mkdir -p dist/admin/components && \
+    cp -r src/admin/components/* dist/admin/components/ 2>/dev/null || true
+
 # Production image
 FROM node:20-alpine
 

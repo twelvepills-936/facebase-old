@@ -27,13 +27,15 @@ services:
     container_name: facebase-app
     restart: unless-stopped
     ports:
-      - "5001:5001"
+      - "8000:8000"
     environment:
       - NODE_ENV=production
-      - PORT=5001
+      - PORT=8000
+      - USE_DOCKER=true
       - MONGO_URI=mongodb://admin:admin123@mongodb:27017/facebase?authSource=admin
       - ADMIN_COOKIE_SECRET=${ADMIN_COOKIE_SECRET:-default-secret-change-in-production}
       - ADMIN_TOKEN=${ADMIN_TOKEN}
+      - ALLOW_TEST_TOKENS=${ALLOW_TEST_TOKENS:-true}
       - TELEGRAM_BOT_ID=${TELEGRAM_BOT_ID}
       - S3_REGION=${S3_REGION}
       - S3_ENDPOINT=${S3_ENDPOINT}
@@ -41,7 +43,16 @@ services:
       - S3_SECRET_ACCESS_KEY=${S3_SECRET_ACCESS_KEY}
       - S3_BUCKET_NAME=${S3_BUCKET_NAME}
       - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
-    depends_on:
+      - USE_ROCKETWORK=${USE_ROCKETWORK:-true}
+      - ROCKETWORK_API_KEY=${ROCKETWORK_API_KEY}
+      - ROCKETWORK_API_URL=${ROCKETWORK_API_URL:-https://api.rocketwork.ru/v1}
+      - ROCKETWORK_WEBHOOK_SECRET=${ROCKETWORK_WEBHOOK_SECRET}
+      - TILDA_WEBHOOK_SECRET=${TILDA_WEBHOOK_SECRET}
+      - TILDA_API_KEY=${TILDA_API_KEY}
+      - USE_VK_ORD=${USE_VK_ORD:-false}
+      - VK_ORD_API_KEY=${VK_ORD_API_KEY}
+      - VK_ORD_API_URL=${VK_ORD_API_URL:-https://api.vk.com/ord/v1}
+    depends_on: 
       mongodb:
         condition: service_healthy
     networks:

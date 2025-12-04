@@ -8,11 +8,12 @@ dotenv.config();
 
 export const connectDB = async (): Promise<void> => {
   try {
-    // В dev mode заменяем хост 'mongodb' на 'localhost' для локальной разработки
+    // В dev mode заменяем хост 'mongodb' на 'localhost' только если НЕ используем Docker
     let mongoUri = process.env.MONGO_URI as string;
     const isDevMode = process.env.NODE_ENV !== 'production';
+    const useDocker = process.env.USE_DOCKER === 'true';
     
-    if (isDevMode && mongoUri?.includes('@mongodb:')) {
+    if (isDevMode && !useDocker && mongoUri?.includes('@mongodb:')) {
       mongoUri = mongoUri.replace('@mongodb:', '@localhost:');
       console.log('🔧 Dev mode: Using localhost for MongoDB connection');
     }
@@ -25,7 +26,7 @@ export const connectDB = async (): Promise<void> => {
           socketTimeoutMS: 45000,
         }
       )
-      .then((res) => {
+      .then((res: typeof mongoose) => {
         monitorWalletChanges();
         monitorProposalChanges();
 
